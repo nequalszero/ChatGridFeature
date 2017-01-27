@@ -46,7 +46,8 @@ const defaultQuestions = [
 	{	title: "Questions About Life",
   	questions: [
                  {text: "Why is the sky blue?"},
-    						 {text: "Why is the president orange?"}
+    						 {text: "Why is the president orange?"},
+                 {text: "Why is snow white?"}
                ]
   },
   {	title: "Coding Survey",
@@ -162,6 +163,9 @@ class PageContainer extends React.Component {
     this.markActiveQuestion = this.markActiveQuestion.bind(this);
     this.clearActiveQuestion = this.clearActiveQuestion.bind(this);
     this.upDownArrows = this.upDownArrows.bind(this);
+    this.moveItemUp = this.moveItemUp.bind(this);
+    this.moveItemDown = this.moveItemDown.bind(this);
+    this.formIsOpen = this.formIsOpen.bind(this);
   }
 
   // Opens new question form and ensures no editing form is open.
@@ -246,10 +250,12 @@ class PageContainer extends React.Component {
     };
   }
 
+  // Store selected form question's index.
   markActiveQuestion(idx) {
     this.setState({activeIdx: idx});
   }
 
+  // Removes selected question index in a form.
   clearActiveQuestion(idx) {
     this.setState({activeIdx: null});
   }
@@ -257,10 +263,8 @@ class PageContainer extends React.Component {
   // Updates text field for question form title.
   updateFormTitle(type) {
     this.checkType(type, 'updateFormTitle');
-    console.log("inside update form title");
 
     return (e) => {
-      console.log("updating state");
       let form = (type === newFormType) ? this.state.newForm
                                         : this.state.editViewItem;
       form.title = e.target.value;
@@ -278,6 +282,7 @@ class PageContainer extends React.Component {
     else this.setState({editViewItem: form});
   }
 
+  // Delete question from a form.
   deleteQuestion(idx, type) {
     this.checkType(type, 'deleteQuestion');
     let form = (type === newFormType) ? this.state.newForm
@@ -315,8 +320,84 @@ class PageContainer extends React.Component {
     this.setState({questions: questions});
   }
 
+  // Checks whether a form is currently open.
+  formIsOpen() {
+    if (this.state.addNew || this.state.editViewEnabled) return true;
+    return false;
+  }
+
+  // Moves a question further down in the list.
+  moveItemDown(idx) {
+    if (this.state.activeIdx !== null && this.formIsOpen()) {
+      let form = this.state.addNew ? this.state.newForm
+                                   : this.state.editViewItem;
+      if (idx < form.questions.length - 1) {
+
+        form.questions = [
+          ...form.questions.slice(0, idx),
+          form.questions[idx+1],
+          form.questions[idx],
+          ...form.questions.slice(idx+2)
+        ];
+
+        if (this.state.addNew) {
+          this.setState({
+            activeIdx: this.state.activeIdx + 1,
+            newForm: form
+          });
+        } else {
+          this.setState({
+            activeIdx: this.state.activeIdx + 1,
+            editViewItem: form
+          });
+        }
+      }
+    }
+  }
+
+  // Moves a question up in the form.
+  moveItemUp(idx) {
+    if (this.state.activeIdx !== null && this.formIsOpen()) {
+
+      let form = this.state.addNew ? this.state.newForm
+                                   : this.state.editViewItem;
+      if (idx > 0) {
+        form.questions = [
+          ...form.questions.slice(0, idx-1),
+          form.questions[idx],
+          form.questions[idx-1],
+          ...form.questions.slice(idx+1)
+        ];
+
+        if (this.state.addNew) {
+          this.setState({
+            activeIdx: this.state.activeIdx - 1,
+            newForm: form
+          });
+        } else {
+          this.setState({
+            activeIdx: this.state.activeIdx - 1,
+            editViewItem: form
+          });
+        }
+      }
+    }
+  }
+
+  // Renders button components for rearranging order of items.
   upDownArrows() {
-    return null;
+    return (
+      <div className="up-down-container">
+        <button className="down-arrow"
+                onClick={() => this.moveItemDown(this.state.activeIdx)}>
+          DOWN
+        </button>
+        <button className="up-arrow"
+                onClick={() => this.moveItemUp(this.state.activeIdx)}>
+          UP
+        </button>
+      </div>
+    );
   }
 
   // Component representing buttons at the button of the questions form
@@ -339,7 +420,7 @@ class PageContainer extends React.Component {
         </div>
       );
     } else {
-    	console.log("Exception in renderQuestionFormNavbar, type was: ", type);
+    	throw `Exception in renderQuestionFormNavbar, type was: ${type}`;
     }
   }
 
@@ -368,6 +449,7 @@ class PageContainer extends React.Component {
     }
   }
 
+  // Renders a list of existing questionares.
   displayForms() {
   	return (
     	<div className="form-index-container">
