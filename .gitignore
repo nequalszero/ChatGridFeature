@@ -1,4 +1,2 @@
 # Ignore node_modules and bundle.js files
 /node_modules
-bundle.js
-bundle.js.map
